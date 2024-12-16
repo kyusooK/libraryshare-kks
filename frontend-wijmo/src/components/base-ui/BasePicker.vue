@@ -2,7 +2,7 @@
     <div>
         <v-combobox
             :items="list"
-            :item-text="nameField"
+            :item-text="getItemText"
             :item-value="idField"
             :label="label"
             return-object
@@ -40,6 +40,7 @@ export default {
         searchKeyword:null,
     }),
     async created() {
+        
         var me = this;
         this.repository = new BaseRepository(axios, this.path)
 
@@ -56,6 +57,7 @@ export default {
         if(this.editMode){
             this.fillSelections()
         }
+        
     },
     mounted() {
         this.$EventBus.$on('changeSelected', (dialog) => {
@@ -88,7 +90,9 @@ export default {
     },
     methods: {
         async fillSelections(){
-            this.list = await this.repository.find(null);
+            var response = await this.repository.find(null);
+            // 받아온 데이터가 배열인지 확인하고 처리
+            this.list = Array.isArray(response) ? response : response.data || [];
         },
         select(val) {
             this.referenceValue = val;
@@ -105,7 +109,34 @@ export default {
                 this.$emit('selected', null)
             }
         },
+        getItemText(item) {
+            if (!item) return '';
+            
+            // nameField가 문자열인 경우
+            if (typeof this.nameField === 'string') {
+                var id = item[_links.self.href].split('/')
+                id = id.pop()
+                return id;
+            }
+            
+            // nameField가 함수인 경우
+            const excludedKeys = ['_links', 'index'];
+            const filteredKeys = Object.keys(item).filter(key => {
+                const valueType = typeof item[key];
+                return !excludedKeys.includes(key) && 
+                    key !== 'id' && 
+                    valueType !== 'object' && 
+                    valueType !== 'number';
+            });
+            
+            if (Object.keys(item).length < 3 || filteredKeys.length === 0) {
+                return item.id;
+            }
+            
+            return item[filteredKeys[1]];
+        }
     },
+    
 };
 </script>
 <style>

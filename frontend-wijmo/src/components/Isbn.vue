@@ -1,7 +1,7 @@
 <template>
 
     <div>
-        <div class="detail-title">
+        <div v-if="editMode" class="detail-title">
         Isbn
         </div>
         <v-col>
@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import BaseEntity from './base-ui/BaseEntity'
+import BaseEntity from './base-ui/BaseEntity';
 
 export default {
     name: 'Isbn',
